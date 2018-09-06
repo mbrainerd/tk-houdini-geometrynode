@@ -26,25 +26,25 @@ import hou
 import sgtk
 
 
-class TkAlembicNodeHandler(object):
-    """Handle Tk Alembic node operations and callbacks."""
+class TkGeometryNodeHandler(object):
+    """Handle Tk Geometry node operations and callbacks."""
 
 
     ############################################################################
     # Class data
 
-    HOU_ROP_ALEMBIC_TYPE = "alembic"
-    """Houdini type for alembic rops."""
+    HOU_ROP_GEOMETRY_TYPE = "geometry"
+    """Houdini type for geometry rops."""
 
-    HOU_SOP_ALEMBIC_TYPE = "rop_alembic"  
-    """Houdini type for alembic sops."""
-    # this is correct. the houdini internal rop_alembic is a sop.
+    HOU_SOP_GEOMETRY_TYPE = "rop_geometry"
+    """Houdini type for geometry sops."""
+    # this is correct. the houdini internal rop_geometry is a sop.
 
-    NODE_OUTPUT_PATH_PARM = "filename"
+    NODE_OUTPUT_PATH_PARM = "sopoutput"
     """The name of the output path parameter on the node."""
 
-    TK_ALEMBIC_NODE_TYPE = "sgtk_alembic"
-    """The class of node as defined in Houdini for the Alembic nodes."""
+    TK_GEOMETRY_NODE_TYPE = "sgtk_geometry"
+    """The class of node as defined in Houdini for the Geometry nodes."""
 
     TK_OUTPUT_CONNECTIONS_KEY = "tk_output_connections"
     """The key in the user data that stores the save output connections."""
@@ -74,35 +74,35 @@ class TkAlembicNodeHandler(object):
     # Class methods
 
     @classmethod
-    def convert_back_to_tk_alembic_nodes(cls, app):
-        """Convert Alembic nodes back to Toolkit Alembic nodes.
+    def convert_back_to_tk_geometry_nodes(cls, app):
+        """Convert Geometry nodes back to Toolkit Geometry nodes.
 
         :param app: The calling Toolkit Application
 
-        Note: only converts nodes that had previously been Toolkit Alembic
+        Note: only converts nodes that had previously been Toolkit Geometry
         nodes.
 
         """
 
-        # get all rop/sop alembic nodes in the session
-        alembic_nodes = []
-        alembic_nodes.extend(hou.nodeType(hou.sopNodeTypeCategory(),
-            cls.HOU_SOP_ALEMBIC_TYPE).instances())
-        alembic_nodes.extend(hou.nodeType(hou.ropNodeTypeCategory(),
-            cls.HOU_ROP_ALEMBIC_TYPE).instances())
+        # get all rop/sop geometry nodes in the session
+        geometry_nodes = []
+        geometry_nodes.extend(hou.nodeType(hou.sopNodeTypeCategory(),
+            cls.HOU_SOP_GEOMETRY_TYPE).instances())
+        geometry_nodes.extend(hou.nodeType(hou.ropNodeTypeCategory(),
+            cls.HOU_ROP_GEOMETRY_TYPE).instances())
 
-        if not alembic_nodes:
-            app.log_debug("No Alembic Nodes found for conversion.")
+        if not geometry_nodes:
+            app.log_debug("No Geometry Nodes found for conversion.")
             return
 
         # the tk node type we'll be converting to
-        tk_node_type = TkAlembicNodeHandler.TK_ALEMBIC_NODE_TYPE
+        tk_node_type = TkGeometryNodeHandler.TK_GEOMETRY_NODE_TYPE
 
-        # iterate over all the alembic nodes and attempt to convert them
-        for alembic_node in alembic_nodes:
+        # iterate over all the geometry nodes and attempt to convert them
+        for geometry_node in geometry_nodes:
 
             # get the user data dictionary stored on the node
-            user_dict = alembic_node.userDataDict()
+            user_dict = geometry_node.userDataDict()
 
             # get the output_profile from the dictionary
             tk_output_profile_name = user_dict.get(
@@ -110,20 +110,20 @@ class TkAlembicNodeHandler(object):
 
             if not tk_output_profile_name:
                 app.log_warning(
-                    "Almbic node '%s' does not have an output profile name. "
-                    "Can't convert to Tk Alembic node. Continuing." %
-                    (alembic_node.name(),)
+                    "Geometry node '%s' does not have an output profile name. "
+                    "Can't convert to Tk Geometry node. Continuing." %
+                    (geometry_node.name(),)
                 )
                 continue
 
-            # create a new, Toolkit Alembic node:
-            tk_alembic_node = alembic_node.parent().createNode(tk_node_type)
+            # create a new, Toolkit Geometry node:
+            tk_geometry_node = geometry_node.parent().createNode(tk_node_type)
 
-            # find the index of the stored name on the new tk alembic node
+            # find the index of the stored name on the new tk geometry node
             # and set that item in the menu.
             try:
-                output_profile_parm = tk_alembic_node.parm(
-                    TkAlembicNodeHandler.TK_OUTPUT_PROFILE_PARM)
+                output_profile_parm = tk_geometry_node.parm(
+                    TkGeometryNodeHandler.TK_OUTPUT_PROFILE_PARM)
                 output_profile_index = output_profile_parm.menuLabels().index(
                     tk_output_profile_name)
                 output_profile_parm.set(output_profile_index)
@@ -132,47 +132,47 @@ class TkAlembicNodeHandler(object):
                     (tk_output_profile_name,))
 
             # copy over all parameter values except the output path 
-            _copy_parm_values(alembic_node, tk_alembic_node,
+            _copy_parm_values(geometry_node, tk_geometry_node,
                 excludes=[cls.NODE_OUTPUT_PATH_PARM])
 
             # copy the inputs and move the outputs
-            _copy_inputs(alembic_node, tk_alembic_node)
+            _copy_inputs(geometry_node, tk_geometry_node)
 
             # determine the built-in operator type
-            if alembic_node.type().name() == cls.HOU_SOP_ALEMBIC_TYPE:
-                _restore_outputs_from_user_data(alembic_node, tk_alembic_node)
-            elif alembic_node.type().name() == cls.HOU_ROP_ALEMBIC_TYPE:
-                _move_outputs(alembic_node, tk_alembic_node)
+            if geometry_node.type().name() == cls.HOU_SOP_GEOMETRY_TYPE:
+                _restore_outputs_from_user_data(geometry_node, tk_geometry_node)
+            elif geometry_node.type().name() == cls.HOU_ROP_GEOMETRY_TYPE:
+                _move_outputs(geometry_node, tk_geometry_node)
 
             # make the new node the same color. the profile will set a color, 
             # but do this just in case the user changed the color manually
             # prior to the conversion.
-            tk_alembic_node.setColor(alembic_node.color())
+            tk_geometry_node.setColor(geometry_node.color())
 
-            # remember the name and position of the original alembic node
-            alembic_node_name = alembic_node.name()
-            alembic_node_pos = alembic_node.position()
+            # remember the name and position of the original geometry node
+            geometry_node_name = geometry_node.name()
+            geometry_node_pos = geometry_node.position()
 
-            # destroy the original alembic node
-            alembic_node.destroy()
+            # destroy the original geometry node
+            geometry_node.destroy()
 
-            # name and reposition the new, regular alembic node to match the
+            # name and reposition the new, regular geometry node to match the
             # original
-            tk_alembic_node.setName(alembic_node_name)
-            tk_alembic_node.setPosition(alembic_node_pos)
+            tk_geometry_node.setName(geometry_node_name)
+            tk_geometry_node.setPosition(geometry_node_pos)
 
-            app.log_debug("Converted: Alembic node '%s' to TK Alembic node."
-                % (alembic_node_name,))
+            app.log_debug("Converted: Geometry node '%s' to TK Geometry node."
+                % (geometry_node_name,))
 
     @classmethod
-    def convert_to_regular_alembic_nodes(cls, app):
-        """Convert Toolkit Alembic nodes to regular Alembic nodes.
+    def convert_to_regular_geometry_nodes(cls, app):
+        """Convert Toolkit Geometry nodes to regular Geometry nodes.
 
         :param app: The calling Toolkit Application
 
         """
 
-        tk_node_type = TkAlembicNodeHandler.TK_ALEMBIC_NODE_TYPE
+        tk_node_type = TkGeometryNodeHandler.TK_GEOMETRY_NODE_TYPE
 
         # determine the surface operator type for this class of node
         sop_types = hou.sopNodeTypeCategory().nodeTypes()
@@ -182,95 +182,86 @@ class TkAlembicNodeHandler(object):
         rop_types = hou.ropNodeTypeCategory().nodeTypes()
         rop_type = rop_types[tk_node_type]
 
-        # get all instances of tk alembic rop/sop nodes
-        tk_alembic_nodes = []
-        tk_alembic_nodes.extend(
+        # get all instances of tk geometry rop/sop nodes
+        tk_geometry_nodes = []
+        tk_geometry_nodes.extend(
             hou.nodeType(hou.sopNodeTypeCategory(), tk_node_type).instances())
-        tk_alembic_nodes.extend(
+        tk_geometry_nodes.extend(
             hou.nodeType(hou.ropNodeTypeCategory(), tk_node_type).instances())
 
-        if not tk_alembic_nodes:
-            app.log_debug("No Toolkit Alembic Nodes found for conversion.")
+        if not tk_geometry_nodes:
+            app.log_debug("No Toolkit Geometry Nodes found for conversion.")
             return
 
-        # iterate over all the tk alembic nodes and attempt to convert them
-        for tk_alembic_node in tk_alembic_nodes:
+        # iterate over all the tk geometry nodes and attempt to convert them
+        for tk_geometry_node in tk_geometry_nodes:
 
             # determine the corresponding, built-in operator type
-            if tk_alembic_node.type() == sop_type:
-                alembic_operator = cls.HOU_SOP_ALEMBIC_TYPE
-            elif tk_alembic_node.type() == rop_type:
-                alembic_operator = cls.HOU_ROP_ALEMBIC_TYPE
+            if tk_geometry_node.type() == sop_type:
+                geometry_operator = cls.HOU_SOP_GEOMETRY_TYPE
+            elif tk_geometry_node.type() == rop_type:
+                geometry_operator = cls.HOU_ROP_GEOMETRY_TYPE
             else:
                 app.log_warning("Unknown type for node '%s': %s'" %
-                    (tk_alembic_node.name(), tk_alembic_node.type()))
+                    (tk_geometry_node.name(), tk_geometry_node.type()))
                 continue
 
-            # create a new, regular Alembic node
-            alembic_node = tk_alembic_node.parent().createNode(alembic_operator)
+            # create a new, regular Geometry node
+            geometry_node = tk_geometry_node.parent().createNode(geometry_operator)
 
             # copy the file parms value to the new node
             filename = _get_output_menu_label(
-                tk_alembic_node.parm(cls.NODE_OUTPUT_PATH_PARM))
-            alembic_node.parm(cls.NODE_OUTPUT_PATH_PARM).set(filename)
+                tk_geometry_node.parm(cls.NODE_OUTPUT_PATH_PARM))
+            geometry_node.parm(cls.NODE_OUTPUT_PATH_PARM).set(filename)
 
             # copy across knob values
-            _copy_parm_values(tk_alembic_node, alembic_node,
+            _copy_parm_values(tk_geometry_node, geometry_node,
                 excludes=[cls.NODE_OUTPUT_PATH_PARM])
 
-            # store the alembic output profile name in the user data so that we
+            # store the geometry output profile name in the user data so that we
             # can retrieve it later.
-            output_profile_parm = tk_alembic_node.parm(
+            output_profile_parm = tk_geometry_node.parm(
                 cls.TK_OUTPUT_PROFILE_PARM)
             tk_output_profile_name = \
                 output_profile_parm.menuLabels()[output_profile_parm.eval()]
-            alembic_node.setUserData(cls.TK_OUTPUT_PROFILE_NAME_KEY, 
+            geometry_node.setUserData(cls.TK_OUTPUT_PROFILE_NAME_KEY,
                 tk_output_profile_name)
 
             # copy the inputs and move the outputs
-            _copy_inputs(tk_alembic_node, alembic_node)
-            if alembic_operator == cls.HOU_SOP_ALEMBIC_TYPE:
-                _save_outputs_to_user_data(tk_alembic_node, alembic_node)
-            elif alembic_operator == cls.HOU_ROP_ALEMBIC_TYPE:
-                _move_outputs(tk_alembic_node, alembic_node)
+            _copy_inputs(tk_geometry_node, geometry_node)
+            if geometry_operator == cls.HOU_SOP_GEOMETRY_TYPE:
+                _save_outputs_to_user_data(tk_geometry_node, geometry_node)
+            elif geometry_operator == cls.HOU_ROP_GEOMETRY_TYPE:
+                _move_outputs(tk_geometry_node, geometry_node)
 
             # make the new node the same color
-            alembic_node.setColor(tk_alembic_node.color())
+            geometry_node.setColor(tk_geometry_node.color())
 
-            # remember the name and position of the original tk alembic node
-            tk_alembic_node_name = tk_alembic_node.name()
-            tk_alembic_node_pos = tk_alembic_node.position()
+            # remember the name and position of the original tk geometry node
+            tk_geometry_node_name = tk_geometry_node.name()
+            tk_geometry_node_pos = tk_geometry_node.position()
 
-            # destroy the original tk alembic node
-            tk_alembic_node.destroy()
+            # destroy the original tk geometry node
+            tk_geometry_node.destroy()
 
-            # name and reposition the new, regular alembic node to match the
+            # name and reposition the new, regular geometry node to match the
             # original
-            alembic_node.setName(tk_alembic_node_name)
-            alembic_node.setPosition(tk_alembic_node_pos)
+            geometry_node.setName(tk_geometry_node_name)
+            geometry_node.setPosition(tk_geometry_node_pos)
 
-            app.log_debug("Converted: Tk Alembic node '%s' to Alembic node."
-                % (tk_alembic_node_name,))
+            app.log_debug("Converted: Tk Geometry node '%s' to Geometry node."
+                % (tk_geometry_node_name,))
 
     @classmethod
-    def get_all_tk_alembic_nodes(cls):
+    def get_all_tk_geometry_nodes(cls):
         """
-        Returns a list of all tk-houdini-alembicnode instances in the current
+        Returns a list of all tk-houdini-geometrynode instances in the current
         session.
         """
 
-        tk_node_type = TkAlembicNodeHandler.TK_ALEMBIC_NODE_TYPE
+        tk_node_type = TkGeometryNodeHandler.TK_GEOMETRY_NODE_TYPE
 
-        # get all instances of tk alembic rop/sop nodes
-        tk_alembic_nodes = []
-        tk_alembic_nodes.extend(
-            hou.nodeType(hou.sopNodeTypeCategory(),
-                         tk_node_type).instances())
-        tk_alembic_nodes.extend(
-            hou.nodeType(hou.ropNodeTypeCategory(),
-                         tk_node_type).instances())
-
-        return tk_alembic_nodes
+        return hou.nodeType(hou.ropNodeTypeCategory(), tk_node_type).instances()
 
     @classmethod
     def get_output_path(cls, node):
@@ -304,13 +295,13 @@ class TkAlembicNodeHandler(object):
             if output_profile_name in self._output_profiles:
                 self._app.log_warning(
                     "Found multiple output profiles named '%s' for the "
-                    "Tk Alembic node! Only the first one will be available." %
+                    "Tk Geometry node! Only the first one will be available." %
                     (output_profile_name,)
                 )
                 continue
 
             self._output_profiles[output_profile_name] = output_profile
-            self._app.log_debug("Caching alembic output profile: '%s'" % 
+            self._app.log_debug("Caching geometry output profile: '%s'" %
                 (output_profile_name,))
 
 
@@ -330,25 +321,25 @@ class TkAlembicNodeHandler(object):
             "Copied render path to clipboard: %s" % (render_path,))
 
 
-    # create an Alembic node, set the path to the output path of current node
-    def create_alembic_node(self):
+    # create an Geometry node, set the path to the output path of current node
+    def create_geometry_node(self):
 
         current_node = hou.pwd()
         output_path_parm = current_node.parm(self.NODE_OUTPUT_PATH_PARM)
-        alembic_node_name = 'alembic_' + current_node.name()
+        geometry_node_name = 'geometry_' + current_node.name()
 
-        # create the alembic node and set the filename parm
-        alembic_node = current_node.parent().createNode(
-            self.HOU_SOP_ALEMBIC_TYPE)
-        alembic_node.parm(self.NODE_OUTPUT_PATH_PARM).set(
+        # create the geometry node and set the filename parm
+        geometry_node = current_node.parent().createNode(
+            self.HOU_SOP_GEOMETRY_TYPE)
+        geometry_node.parm(self.NODE_OUTPUT_PATH_PARM).set(
             output_path_parm.menuLabels()[output_path_parm.eval()])
-        alembic_node.setName(alembic_node_name, unique_name=True)
+        geometry_node.setName(geometry_node_name, unique_name=True)
 
         # move it away from the origin
-        alembic_node.moveToGoodPosition()
+        geometry_node.moveToGoodPosition()
 
 
-    # get labels for all tk-houdini-alembic node output profiles
+    # get labels for all tk-houdini-geometry node output profiles
     def get_output_profile_menu_labels(self):
 
         menu_labels = []
@@ -384,7 +375,7 @@ class TkAlembicNodeHandler(object):
 
         output_profile = self._get_output_profile(node)
 
-        self._app.log_debug("Applying tk alembic node profile: %s" % 
+        self._app.log_debug("Applying tk geometry node profile: %s" %
             (output_profile["name"],))
 
         # apply the supplied settings to the node
@@ -471,6 +462,7 @@ class TkAlembicNodeHandler(object):
     def setup_node(self, node):
 
         default_name = self._app.get_setting('default_node_name')
+
         node.setName(default_name, unique_name=True)
 
         # apply the default profile
@@ -498,18 +490,33 @@ class TkAlembicNodeHandler(object):
 
         output_profile = self._get_output_profile(node)
 
-        # Get the cache templates from the app
-        output_cache_template = self._app.get_template_by_name(
-            output_profile["output_cache_template"])
+        if node.evalParm('shared_out'):
+            output_cache_template = self._app.get_template_by_name(
+                output_profile["output_cache_shared_template"])
+        else:
+            # Get the cache templates from the app
+            output_cache_template = self._app.get_template_by_name(
+                output_profile["output_cache_template"])
+
+        # Get the type of output
+        extension = node.evalParm('types')
+        types = {0: 'bgeo',
+                 1: 'fbx',
+                 2: 'obj'}
 
         # create fields dict with all the metadata
         fields = {
             "name": work_file_fields.get("name", None),
             "node": node.name(),
             "renderpass": node.name(),
-            "SEQ": "FORMAT: $F",
             "version": work_file_fields.get("version", None),
+            "geo.ext": types[extension]
         }
+
+        if node.evalParm('seq') == 1:
+            fields["SEQ"] = "FORMAT: $F"
+        else:
+            fields["SEQ"] = None
 
         fields.update(self._app.context.as_template_fields(
             output_cache_template))
@@ -644,7 +651,7 @@ def _copy_parm_values(source_node, target_node, excludes=None):
                     # that's selected. To support both, we try the old way (which is how our
                     # otl is setup to work), and if that fails we then fall back on mapping
                     # the integer index from our otl's parm over to the string language name
-                    # that the alembic node is expecting.
+                    # that the geometry node is expecting.
                     if source_parm.name().startswith("lpre") or source_parm.name().startswith("lpost"):
                         value_map = ["hscript", "python"]
                         target_parm.set(value_map[source_parm.eval()])
@@ -687,7 +694,7 @@ def _save_outputs_to_user_data(source_node, target_node):
         outputs.append(output_dict)
 
     # get the current encoder for the handler
-    handler_cls = TkAlembicNodeHandler
+    handler_cls = TkGeometryNodeHandler
     codecs = handler_cls.TK_OUTPUT_CONNECTION_CODECS
     encoder = codecs[handler_cls.TK_OUTPUT_CONNECTION_CODEC]['encode']
 
@@ -702,7 +709,7 @@ def _save_outputs_to_user_data(source_node, target_node):
 def _restore_outputs_from_user_data(source_node, target_node):
 
     data_str = source_node.userData(
-        TkAlembicNodeHandler.TK_OUTPUT_CONNECTIONS_KEY)
+        TkGeometryNodeHandler.TK_OUTPUT_CONNECTIONS_KEY)
 
     if not data_str:
         return
@@ -713,7 +720,7 @@ def _restore_outputs_from_user_data(source_node, target_node):
     data_str = data_str[sep_index + 1:]
 
     # get the matching decoder based on the codec name
-    handler_cls = TkAlembicNodeHandler
+    handler_cls = TkGeometryNodeHandler
     codecs = handler_cls.TK_OUTPUT_CONNECTION_CODECS
     decoder = codecs[codec_name]['decode']
 

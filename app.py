@@ -9,81 +9,81 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Alembic Output node App for use with Toolkit's Houdini engine.
+Geometry Output node App for use with Toolkit's Houdini engine.
 """
 
 import sgtk
 
 
-class TkAlembicNodeApp(sgtk.platform.Application):
-    """The Alembic Output Node."""
+class TkGeometryNodeApp(sgtk.platform.Application):
+    """The Geometry Output Node."""
 
     def init_app(self):
         """Initialize the app."""
 
-        tk_houdini_alembic = self.import_module("tk_houdini_alembicnode")
-        self.handler = tk_houdini_alembic.TkAlembicNodeHandler(self)
+        tk_houdini_geometry = self.import_module("tk_houdini_geometrynode")
+        self.handler = tk_houdini_geometry.TkGeometryNodeHandler(self)
 
-    def convert_to_regular_alembic_nodes(self):
-        """Convert Toolkit Alembic nodes to regular Alembic nodes.
+    def convert_to_regular_geometry_nodes(self):
+        """Convert Toolkit Geometry nodes to regular Geometry nodes.
         
-        Convert all Toolkit Alembic nodes found in the current script to
-        regular Alembic nodes. Additional Toolkit information will be stored in
+        Convert all Toolkit Geometry nodes found in the current script to
+        regular Geometry nodes. Additional Toolkit information will be stored in
         user data named 'tk_*'
 
         Example usage::
 
         >>> import sgtk
         >>> eng = sgtk.platform.current_engine()
-        >>> app = eng.apps["tk-houdini-alembicnode"]
-        >>> app.convert_to_regular_alembic_nodes()
+        >>> app = eng.apps["tk-houdini-geometrynode"]
+        >>> app.convert_to_regular_geometry_nodes()
 
         """
 
         self.log_debug(
-            "Converting Toolkit Alembic nodes to built-in Alembic nodes.")
-        tk_houdini_alembic = self.import_module("tk_houdini_alembicnode")
-        tk_houdini_alembic.TkAlembicNodeHandler.\
-            convert_to_regular_alembic_nodes(self)
+            "Converting Toolkit Geometry nodes to built-in Geometry nodes.")
+        tk_houdini_geometry = self.import_module("tk_houdini_geometrynode")
+        tk_houdini_geometry.TkGeometryNodeHandler.\
+            convert_to_regular_geometry_nodes(self)
 
-    def convert_back_to_tk_alembic_nodes(self):
-        """Convert regular Alembic nodes back to Tooklit Alembic nodes.
+    def convert_back_to_tk_geometry_nodes(self):
+        """Convert regular Geometry nodes back to Tooklit Geometry nodes.
         
-        Convert any regular Alembic nodes that were previously converted
-        from Tooklit Alembic nodes back into Toolkit Alembic nodes.
+        Convert any regular Geometry nodes that were previously converted
+        from Tooklit Geometry nodes back into Toolkit Geometry nodes.
 
         Example usage::
 
         >>> import sgtk
         >>> eng = sgtk.platform.current_engine()
-        >>> app = eng.apps["tk-houdini-alembicnode"]
-        >>> app.convert_back_to_tk_alembic_nodes()
+        >>> app = eng.apps["tk-houdini-geometrynode"]
+        >>> app.convert_back_to_tk_geometry_nodes()
 
         """
 
         self.log_debug(
-            "Converting built-in Alembic nodes back to Toolkit Alembic nodes.")
-        tk_houdini_alembic = self.import_module("tk_houdini_alembicnode")
-        tk_houdini_alembic.TkAlembicNodeHandler.\
-            convert_back_to_tk_alembic_nodes(self)
+            "Converting built-in Geometry nodes back to Toolkit Geometry nodes.")
+        tk_houdini_geometry = self.import_module("tk_houdini_geometrynode")
+        tk_houdini_geometry.TkGeometryNodeHandler.\
+            convert_back_to_tk_geometry_nodes(self)
 
     def get_nodes(self):
         """
-        Returns a list of hou.node objects for each tk alembic node.
+        Returns a list of hou.node objects for each tk geometry node.
 
         Example usage::
 
         >>> import sgtk
         >>> eng = sgtk.platform.current_engine()
-        >>> app = eng.apps["tk-houdini-alembicnode"]
-        >>> tk_alembic_nodes = app.get_nodes()
+        >>> app = eng.apps["tk-houdini-geometrynode"]
+        >>> tk_geometry_nodes = app.get_nodes()
         """
 
-        self.log_debug("Retrieving tk-houdini-alembic nodes...")
-        tk_houdini_alembic = self.import_module("tk_houdini_alembicnode")
-        nodes = tk_houdini_alembic.TkAlembicNodeHandler.\
-            get_all_tk_alembic_nodes()
-        self.log_debug("Found %s tk-houdini-alembic nodes." % (len(nodes),))
+        self.log_debug("Retrieving tk-houdini-geometry nodes...")
+        tk_houdini_geometry = self.import_module("tk_houdini_geometrynode")
+        nodes = tk_houdini_geometry.TkGeometryNodeHandler.\
+            get_all_tk_geometry_nodes()
+        self.log_debug("Found %s tk-houdini-geometry nodes." % (len(nodes),))
         return nodes
 
     def get_output_path(self, node):
@@ -94,13 +94,13 @@ class TkAlembicNodeApp(sgtk.platform.Application):
 
         >>> import sgtk
         >>> eng = sgtk.platform.current_engine()
-        >>> app = eng.apps["tk-houdini-alembicnode"]
-        >>> output_path = app.get_output_path(tk_alembic_node)
+        >>> app = eng.apps["tk-houdini-geometrynode"]
+        >>> output_path = app.get_output_path(tk_geometry_node)
         """
 
         self.log_debug("Retrieving output path for %s" % (node,))
-        tk_houdini_alembic = self.import_module("tk_houdini_alembicnode")
-        output_path = tk_houdini_alembic.TkAlembicNodeHandler.\
+        tk_houdini_geometry = self.import_module("tk_houdini_geometrynode")
+        output_path = tk_houdini_geometry.TkGeometryNodeHandler.\
             get_output_path(node)
         self.log_debug("Retrieved output path: %s" % (output_path,))
         return output_path

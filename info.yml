@@ -17,10 +17,10 @@ configuration:
     default_node_name:
         type: str
         description: >
-            A default name for Alembic output nodes created in houdini.
+            A default name for Geometry output nodes created in houdini.
             Allowed characters include letters, numbers, periods, dashes, or
             underscores.
-        default_value: sgtk_alembic
+        default_value: sgtk_geometry
 
     work_file_template:
         type: template
@@ -34,16 +34,16 @@ configuration:
         type: list
         allows_empty: False
         description: >
-            A list of dictionaries defining the various alembic output
+            A list of dictionaries defining the various geometry output
             profiles. Each profile contains a unique name that describes the
             profile, the cach template for writing to disk, a color to
             distinguish each profile type in the node graph, and optional
-            settings to apply to the internal Alembic node.
+            settings to apply to the internal Geometry node.
             
         values: 
             type: dict
             description: > 
-                An output profile dictionary that defines how the Tk Alembic
+                An output profile dictionary that defines how the Tk Geometry
                 node should look in houdini and where it should write its
                 cache.
             items:
@@ -56,7 +56,7 @@ configuration:
                     type: dict
                     description: >
                         A dictionary of settings to apply to the internal
-                        Alembic node when this profile is selected.
+                        Geometry node when this profile is selected.
 
                 color:
                     type: list     
@@ -67,7 +67,7 @@ configuration:
                         profile is used. Specify an empty list to use the
                         default colour.
                     values:
-                        type: float
+                        type: int
                     allows_empty: True
                     default_value: []
 
@@ -75,7 +75,14 @@ configuration:
                     type: template
                     description: >
                         A reference to a template which defines where the
-                        alembic cache will be written to disk. 
+                        geometry cache will be written to disk.
+                    fields: context, version, [name], [node]
+
+                output_cache_shared_template:
+                    type: template
+                    description: >
+                        A reference to a template which defines where the
+                        geometry cache will be written to disk at SHARED location.
                     fields: context, version, [name], [node]
 
 
@@ -83,8 +90,8 @@ configuration:
 requires_shotgun_fields:
 
 # More verbose description of this item 
-display_name: "Alembic Output Node"
-description: "Support for the Toolkit Alembic output node in Houdini."
+display_name: "Geometry Output Node"
+description: "Support for the Toolkit Geometry output node in Houdini."
 
 # Required minimum versions for this item to run
 requires_shotgun_version:
