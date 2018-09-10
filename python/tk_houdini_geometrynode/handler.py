@@ -270,7 +270,9 @@ class TkGeometryNodeHandler(object):
         """
 
         output_parm = node.parm(cls.NODE_OUTPUT_PATH_PARM)
-        path = output_parm.menuLabels()[output_parm.eval()]
+        print "output parm", output_parm
+        print "output path", output_parm.eval()
+        path = hou.expandString(output_parm.menuLabels()[output_parm.eval()])
         return path
 
     ############################################################################
@@ -500,9 +502,10 @@ class TkGeometryNodeHandler(object):
 
         # Get the type of output
         extension = node.evalParm('types')
-        types = {0: 'bgeo',
+        types = {0: 'bgeo.sc',
                  1: 'fbx',
-                 2: 'obj'}
+                 2: 'obj',
+                 3: 'bgeo',}
 
         # create fields dict with all the metadata
         fields = {
