@@ -505,7 +505,9 @@ class TkGeometryNodeHandler(object):
         types = {0: 'bgeo.sc',
                  1: 'fbx',
                  2: 'obj',
-                 3: 'bgeo',}
+                 3: 'bgeo',
+                 4: 'sim',
+                 5: 'vdb',}
 
         # create fields dict with all the metadata
         fields = {
