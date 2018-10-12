@@ -270,8 +270,6 @@ class TkGeometryNodeHandler(object):
         """
 
         output_parm = node.parm(cls.NODE_OUTPUT_PATH_PARM)
-        print "output parm", output_parm
-        print "output path", output_parm.eval()
         path = hou.expandString(output_parm.menuLabels()[output_parm.eval()])
         return path
 
