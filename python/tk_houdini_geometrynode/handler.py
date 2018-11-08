@@ -501,11 +501,9 @@ class TkGeometryNodeHandler(object):
         # Get the type of output
         extension = node.evalParm('types')
         types = {0: 'bgeo.sc',
-                 1: 'fbx',
-                 2: 'obj',
-                 3: 'bgeo',
-                 4: 'sim',
-                 5: 'vdb',}
+                 1: 'obj',
+                 2: 'bgeo',
+                 3: 'vdb',}
 
         # create fields dict with all the metadata
         fields = {
