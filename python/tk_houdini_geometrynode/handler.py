@@ -482,7 +482,7 @@ class TkGeometryNodeHandler(object):
     def _compute_output_path(self, node):
 
         # get relevant fields from the current file path
-        work_file_fields = self._get_hipfile_fields()
+        work_file_fields = self._get_hipfile_fields(node)
 
         if not work_file_fields:
             msg = "This Houdini file is not a Shotgun Toolkit work file!"
@@ -543,14 +543,17 @@ class TkGeometryNodeHandler(object):
             
 
     # extract fields from current Houdini file using the workfile template
-    def _get_hipfile_fields(self):
+    def _get_hipfile_fields(self, node):
         current_file_path = hou.hipFile.path()
-
+        render_file_path = node.parm('render_file').eval()
         work_fields = {}
         work_file_template = self._app.get_template("work_file_template")
-        if (work_file_template and 
-            work_file_template.validate(current_file_path)):
-            work_fields = work_file_template.get_fields(current_file_path)
+
+        if work_file_template:
+            if work_file_template.validate(current_file_path):
+                work_fields = work_file_template.get_fields(current_file_path)
+            elif work_file_template.validate(render_file_path):
+                work_fields = work_file_template.get_fields(render_file_path)
 
         return work_fields
 
