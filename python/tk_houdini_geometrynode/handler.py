@@ -545,7 +545,7 @@ class TkGeometryNodeHandler(object):
     # extract fields from current Houdini file using the workfile template
     def _get_hipfile_fields(self, node):
         current_file_path = hou.hipFile.path()
-        render_file_path = node.parm('render_file').eval()
+        render_file_path = node.parm('original_file').eval()
         work_fields = {}
         work_file_template = self._app.get_template("work_file_template")
 
